@@ -1,0 +1,14 @@
+# Les PDF, résultats numériques et journaux Lean sont des livrables conservés.
+# Les notes de communication privées restent hors du dépôt, à tous les niveaux.
+AUDIT.md
+**/.lake/
+**/__pycache__/
+*.pyc
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.xdv

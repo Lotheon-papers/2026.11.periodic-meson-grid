@@ -1,0 +1,285 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,booktabs}
+\usepackage[hidelinks]{hyperref}
+\usepackage{lmodern}
+\usepackage{microtype}
+\setlength{\emergencystretch}{2em}
+\newtheorem{proposition}{Proposition}
+\newcommand{\unit}{\,\mathrm{MeV}/c^{2}}
+\newcommand{\ind}{\mathbf{1}}
+\newcommand{\Prb}{\mathbb P}
+\title{Tests of Proximity to a Periodic Grid\\[2pt]
+\large The Effect of Fitting the Sample Extremes and an Application to Five Meson Masses}
+\author{Frederic Loth\\[4pt]
+\small Independent research}
+\date{Methodological working paper\\Version dated 16 November 2026}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+This working paper studies the conditional calibration of a test that compares the sum of distances to a periodic grid with the corresponding sum for uniform draws. When the support of the uniform distribution is fitted to the sample extremes, resampling those two observations can distort the conditional size. We obtain an exact expression when the support spans an integer number of grid periods. If both endpoints lie on the grid, then at nominal level $\alpha\leq 1/n!$ the conditional size is $(n!\alpha)^{(n-2)/n}/(n-2)!$ for $n\geq 3$. We apply the calculation to five pseudoscalar mesons and a grid with spacing $70\unit$. At one admissible pair of sample extremes, the fitted rule with nominal level $5\%$ has a conditional rejection probability of $32.46\%$. The minimum lower-tail probabilities over the mass sensitivity bands are $0.01731745$ for the fitted descriptive reference, $0.15504888$ for the test conditioned on the extremes, and $0.17207714$ for the common-phase test. The calculations combine exact integration with arithmetic checks in Lean. The application is a retrospective methodological case study and provides no evidence of physical mass quantization.
+\end{abstract}
+\noindent\textbf{Keywords.} Conditional testing, order statistics, periodic grid, test size, pseudoscalar mesons.
+
+\section{Purpose and scope}
+
+This working paper has a methodological objective: to calculate the effect of replacing the observed extremes in a uniform reference fitted to the data. Proximity to a grid provides a simple score for which the reference laws can be compared exactly and their dependence on the endpoint phase studied.
+
+The analytic proofs are accompanied by Python calculations using rational arithmetic and partial verification in Lean. The mass application illustrates the consequences of different reference choices on a small fixed corpus. Any physical findings depend on that corpus and the statistical assumptions.
+
+Nambu proposed an empirical regularity in the mass spectrum \cite{nambu}. Palazzi examined multiples using units that varied across groups defined by quark composition and $J^{PC}$ \cite{palazzi}. One of Mac Gregor's proposals used a spacing of $70.03\unit$ for pseudoscalar mesons \cite{macgregor}. We study a fixed grid with spacing $70\unit$ and origin zero on a retrospectively selected set that includes states of different isospins.
+
+The statistical issue arises when the observed score is compared with the score of independent draws from the interval between the observed minimum and maximum. The two observations that determine the interval contribute fixed distances. Replacing them with two new draws changes their contributions. Conditioning on the extreme order statistics yields a reference law suited to the uniform model \cite{order}. For periodic grids, we quantify the resulting discrepancy and its dependence on the phase of the endpoints.
+
+\subsection{Related work and methodological contribution}\label{sec:prior}
+
+The effect of estimated parameters on test calibration is classical. Lilliefors studies it for the Kolmogorov--Smirnov normality test with unknown mean and variance \cite{lilliefors}. Lockhart compares conditional laws and bootstrap references in exponential families, obtaining asymptotic results \cite{lockhart}. These settings do not directly yield the finite-sample calculation studied here, whose uniform support depends on the extremes.
+
+For circular data, Lockhart, O'Reilly, and Stephens already compare conditional and bootstrap tests under a von Mises distribution \cite{vonmises}. Their Watson statistic and conditioning on a sufficient statistic differ from the grid score and conditioning on the relative configuration used here.
+
+Conditioning on order statistics \cite{order}, the Irwin--Hall law and its inclusion--exclusion calculation \cite{irwinhall}, and the randomization principle \cite{hemerik} are established tools. M2 and M3 apply them to this problem. The principles underlying these tests are not claimed as new.
+
+The contribution of this paper is an analytic, reproducible specialization: Proposition~\ref{prop:general} makes the conditional size of M1 explicit as a function of the endpoint phase, including its small-tail regime and the transition from over-rejection to under-rejection; Section~\ref{sec:application} gives the minima over a fixed sensitivity domain, including an M2 minimum inside a band. The accompanying materials combine these calculations with rational checks and partial formalization.
+
+The targeted literature search, completed on 16 November 2026, covered calibration with estimated parameters, conditioning on the extremes, bootstrap references, and tests for circular data. It draws on the cited publications, publisher records, institutional repositories, and arXiv. For Lilliefors, only the record, abstract, and metadata were consulted; the papers by Lockhart from 2012 and by Lockhart, O'Reilly, and Stephens from 2009 were consulted in full.
+
+Among the sources examined, this search did not identify the phase-dependent calculation together with the minima over the bands presented here. This finding delineates the proposed specialization; it is neither an exhaustive search nor proof of bibliographic priority. The working-paper status is intended to allow discussion of this contribution and its limitations.
+
+\section{Score and reference laws}
+
+Let $P>0$ denote the grid spacing, $h=P/2$, and $d_P(x)=\min_{k\in\mathbb Z}|x-kP|$. For $n\geq3$ observations $m=(m_1,\ldots,m_n)$, define
+\[
+S_\phi(m)=\sum_{i=1}^n d_P(m_i-\phi),\qquad
+a=\min_i m_i,\quad e=\max_i m_i,\quad I=[a,e].
+\]
+Assume $a<e$. Smaller $S_0$ indicates greater proximity. For independent $Y_j$ uniformly distributed on $I$, let $F_{r,I}$ be the cumulative distribution function of $\sum_{j=1}^r d_P(Y_j)$ and write $\delta=d_P(a)+d_P(e)$.
+
+\paragraph{Fitted-support reference (M1).}
+We compute $p_1=F_{n,I}(S_0)$ using $n$ new draws from $I$. This tail probability serves as a descriptive reference.
+
+\paragraph{Test conditioned on the extremes (M2).}
+Under the null hypothesis of an iid sample from a uniform distribution on an unknown interval, the $n-2$ interior order statistics, conditionally on $(a,e)$, have density $(n-2)!/(e-a)^{n-2}$ on the ordered simplex between $a$ and $e$. This follows by normalizing the constant joint density of the order statistics \cite{order}. Since the sum is symmetric, it has the same law as for $n-2$ iid draws from $I$. The conditional $p$-value is
+\begin{equation}\label{eq:m2}
+p_2=F_{n-2,I}(S_0-\delta).
+\end{equation}
+The distribution of the distance is continuous when the mass is uniform on any interval of positive length, by splitting the triangular profile into segments of slope $\pm1$. Under the null, $p_2$ is therefore uniform conditionally on the extremes.
+
+\paragraph{Common-phase test (M3).}
+We compare origin zero with translations over one period through
+\begin{equation}\label{eq:m3}
+p_3=P^{-1}\,\operatorname{length}\{\phi\in[0,P):S_\phi(m)\leq S_0(m)\}.
+\end{equation}
+The null condition is uniformity of the common phase given the relative configuration modulo $P$. For a fixed origin, if $F$ is the conditional cumulative distribution function of the phase score, this expression equals $F(S_0)$. Including ties ensures $\Prb(p_3\leq\alpha)\leq\alpha$ under this condition, including when the score has flat segments. The length is computed by linear interpolation between the breakpoints $\phi=m_i$ and $\phi=m_i+h$ modulo $P$. For the randomization principle on finite groups, see \cite{hemerik}.
+
+\section{Conditional size of the fitted-support rule}
+
+Let $q_{\alpha,I}=F_{n,I}^{-1}(\alpha)$ for $0<\alpha<1$. The cumulative distribution function increases strictly in the interior of the support of the sum. The distance on $I$ ranges over an interval, and every open subinterval of its interior has a preimage of positive length. The sum of $n$ draws has the analogous property on its support. Under the uniform null of M2, the rule $p_1\leq\alpha$ thus has conditional size
+\begin{equation}\label{eq:cond}
+C_I(\alpha)=F_{n-2,I}(q_{\alpha,I}-\delta)
+\end{equation}
+given the observed extremes. The variance of the reference score is $n\,\mathrm{Var}(d_P(Y_1))$, while the conditional variance of the observed score is $(n-2)\,\mathrm{Var}(d_P(Y_1))$. The variance of the distance is positive because $d_P$ varies on $I$. The two distributions therefore differ, which rules out exact conditional calibration of M1 at every level.
+
+\begin{proposition}\label{prop:general}
+If $e-a=kP$ for an integer $k\geq1$, let $G_r$ denote the cumulative distribution function of the sum of $r$ iid uniform variables on $[0,1]$. Then
+\begin{equation}\label{eq:irwin}
+C_I(\alpha)=G_{n-2}\!\left(G_n^{-1}(\alpha)-\frac{2d_P(a)}{h}\right).
+\end{equation}
+At fixed length $kP$, this size is maximized when $a,e\in P\mathbb Z$. In that case, for $0<\alpha\leq1/n!$,
+\begin{equation}\label{eq:small}
+C_I(\alpha)=\frac{(n!\alpha)^{(n-2)/n}}{(n-2)!},
+\qquad
+\frac{C_I(\alpha)}{\alpha}=\frac{n(n-1)}{(n!\alpha)^{2/n}}.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Reducing a uniform draw over $k$ periods modulo $P$ gives a phase uniformly distributed over one period. On one period, each distance in $(0,h)$ has two preimages, with derivative of absolute value 1 on the two branches. Thus $d_P(Y_j)/h$ is uniform on $[0,1]$. Both endpoints have the same phase and $\delta=2d_P(a)$. Equation~\eqref{eq:cond} gives \eqref{eq:irwin}, and monotonicity of $G_{n-2}$ yields a maximizing phase. If both endpoints lie on the grid and $\alpha\leq1/n!$, the reduced quantile $q=G_n^{-1}(\alpha)$ lies in $(0,1]$. The simplex of coordinate sum at most $q$ lies within the unit cube, so $G_r(q)=q^r/r!$. Substituting $q=(n!\alpha)^{1/n}$ gives \eqref{eq:small}.
+\end{proof}
+
+The transition from over-rejection to under-rejection occurs at
+\[
+\frac{2d_P(a)}{h}=G_n^{-1}(\alpha)-G_{n-2}^{-1}(\alpha).
+\]
+This difference lies in $(0,2)$. Indeed, if $v=G_{n-2}^{-1}(\alpha)$ and $W$ is the sum of two new uniform variables on $[0,1]$, then $0<W<2$ almost surely. Averaging $G_{n-2}(v-W)$ and $G_{n-2}(v+2-W)$ yields $G_n(v)<\alpha<G_n(v+2)$. By \eqref{eq:irwin}, the size exceeds $\alpha$ below the phase threshold and is smaller above it.
+
+For $n=5$ and $\alpha=1/120$, the aligned size is $1/6$, or twenty times the nominal level. At $\alpha=0.05$, \eqref{eq:irwin} gives approximately $45.11\%$ when $d_P(a)=0$, $1.37\%$ when $d_P(a)=h/2$, and $0\%$ when $d_P(a)=h$. These values use inclusion--exclusion for $G_r$ \cite{irwinhall}. The ratio in \eqref{eq:small} diverges as $\alpha$ tends to zero, while the absolute size tends to zero. The marginal size depends on the distribution of the extremes. The conditional expression is continuous in $(a,e)$ for $a<e$. Indeed, we can couple the draws by $Y_j=a+(e-a)U_j$ and use the continuity of the laws of the sums and the uniqueness of the interior quantile. A strict inequality at a pair of extremes therefore holds in a neighborhood of that pair.
+
+\section{Application to meson masses}\label{sec:application}
+
+\subsection{Choice of corpus and scope of the case study}
+
+The corpus comprises five pseudoscalar mesons from the PDG category of light unflavored mesons ($S=C=B=0$), with different isospins \cite{pdg}. The choice is purposive and retrospective. Its rationale is that of a small case study allowing exact calculations and explicit sensitivity analysis.
+
+The trio $\pi^0,\eta,\eta'$ supplies precise masses whose contributions change little over their bands. The two resonances $\pi(1300)$ and $\pi(1800)$ introduce wider variations. The band of $\pi(1300)$ contains three grid points and allows an interior observation to move; the band of $\pi(1800)$ varies the upper extreme and hence the fitted reference law. The lower extreme remains $\pi^0$ throughout the domain. This combination separates score effects from endpoint effects while keeping the optimization tractable.
+
+This corpus is not a complete inventory of pseudoscalars: the charged pion partners and other states, including $\eta(1295)$, $\eta(1405)$, and $\eta(1475)$, are not included \cite{pdg}. The five masses thus form neither a random sample justified by this selection nor a family homogeneous in isospin. The methodological rationale given here does not constitute a selection protocol predating inspection of the data. The application results concern this fixed case; the general formulas in the preceding section do not depend on choosing these particles.
+
+\subsection{Data and sensitivity bands}
+
+The masses in Table~\ref{tab:data} come from the 2024 PDG edition \cite{pdg,pion}. The band for $\pi(1300)$ uses the estimate $1300\pm100\unit$. The particle listing also records individual determinations outside this band. The other bands use the reported uncertainties. Their Cartesian product defines a deterministic sensitivity domain, without a joint measurement-error model. For $P=70$ and $n=5$, the nominal mean score $S_0/5$ is $15.87624\unit$. Table~\ref{tab:results} gives the nominal probabilities and the minima established below.
+
+\begin{table}[htbp]
+\centering
+\caption{Masses and sensitivity bands in $\mathrm{MeV}/c^2$.}
+\label{tab:data}
+\begin{tabular}{lrrr}
+\toprule
+Entry & Nominal mass & Lower endpoint & Upper endpoint\\
+\midrule
+$\pi^0$     & $134.9768$ & $134.9763$ & $134.9773$\\
+$\eta$      & $547.862$  & $547.845$  & $547.879$\\
+$\eta'$     & $957.78$   & $957.72$   & $957.84$\\
+$\pi(1300)$ & $1300$     & $1200$     & $1400$\\
+$\pi(1800)$ & $1810$     & $1799$     & $1819$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Nominal tail probabilities and minima over the product of the bands.}
+\label{tab:results}
+\begin{tabular}{lrr}
+\toprule
+Reference & Nominal masses & Minimum over bands\\
+\midrule
+M1, fitted uniform support & $0.361078916$ & $0.017317449833$\\
+M2, conditioned uniform & $0.739463415$ & $0.155048883473$\\
+M3, common phase & $0.453606857$ & $0.172077142857$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Exact density and reduction of the optimization}
+
+Write $(a,b,c,x,e)$ in the order of Table~\ref{tab:data}. The extremes are $a$ and $e$ throughout the domain. Set $A=140-a$, $E=1820-e$, and $L=1680+A-E$. Then $A\in[5.0227,5.0237]$, $E\in[1,21]$, and $L>1600$. The density of $d_{70}(Y_1)$ is $f/L$, where almost everywhere
+\[
+f(z)=47\ind_{[0,35]}(z)+\ind_{[0,A]}(z)+\ind_{[E,35]}(z).
+\]
+There are 46 complete branches in $[140,1750]$ and one more in $[1750,1785]$. The segments $[a,140]$ and $[1785,e]$ yield the two variable terms. All branches have slopes of absolute value 1, and $\int f=L$.
+
+Let $V_r(y;A,E)$ be the integral of $\prod_{j=1}^r f(z_j)$ over $z_j\geq0$, $\sum_j z_j\leq y$, with $V_r=0$ for $y<0$. With knots $(t_i)=(0,A,E,35)$ and jumps $(w_i)=(48,-1,1,-48)$,
+\begin{equation}\label{eq:vol}
+V_r(y;A,E)=\frac1{r!}\sum_{i_1,\ldots,i_r=1}^4
+\left(\prod_{j=1}^r w_{i_j}\right)
+\left(y-\sum_{j=1}^r t_{i_j}\right)_+^r.
+\end{equation}
+We expand the product of densities into step functions and translate the coordinates to obtain simplex volumes. Thus $F_{r,I}=V_r/L^r$. In the program, grouping indices by multiplicity replaces $1/r!$ with the product of the inverses of the multiplicity factorials.
+
+At fixed $A,E$, M1 and M2 increase strictly with their observed sum thresholds in the interiors of their supports. Indeed, $f\geq47$ on $[0,35]$ and every open sum interval within $(0,35r)$ meets the interior of $[0,35]^r$. The observed thresholds lie within these supports. Minimization therefore requires $b=547.879$, $c=957.84$, and $x\in\{1260,1330,1400\}$, the grid points in its band. With $s=34.281$, the remaining optimization is over
+\[
+P_1(A,E)=L^{-5}V_5(s+A+E;A,E),\qquad
+P_2(A,E)=L^{-3}V_3(s;A,E).
+\]
+
+\subsection{Minima for M1 and M2}
+
+At fixed $y$ and for $r\geq2$, differentiating \eqref{eq:vol} yields
+\[
+\partial_A V_r(y)=rV_{r-1}(y-A),\qquad
+\partial_E V_r(y)=-rV_{r-1}(y-E).
+\]
+At each occurrence of the variable knot, the derivative reduces the degree of the positive-part power by one. The sign of the jump and that of the knot derivative give the displayed signs. The positive-part powers are differentiable at their knots for $r\geq2$.
+
+For M1, $y=s+A+E$ lies in $(35,70)$. The density product decomposes into a contribution of $47^5$ on the cube and a nonnegative remainder whose lower-tail volume is increasing. By inclusion--exclusion,
+\[
+V'_5(y)\geq47^5\frac{y^4-5(y-35)^4}{24}
+\geq\frac{47^5}{2}\frac{y^4}{24}.
+\]
+Bounding the density on the simplex gives $V_5(y)\leq49^5y^5/120$ and $V_4(y-E)\leq49^4y^4/24$. The derivatives of $P_1$ with respect to $A,E$, multiplied by $L^5$, are respectively
+\[
+V'_5(y)+5V_4(y-A)-5V_5(y)/L,\qquad
+V'_5(y)-5V_4(y-E)+5V_5(y)/L.
+\]
+They are positive because $47^5/2>49^5(70/1600)$ and $47^5/2>5\cdot49^4$. The minimum is attained at $A=5.0227$, $E=1$, and \eqref{eq:vol} gives
+\[
+\min p_1=\frac{117271815670703024016458494058250829}
+{6771887131105517591313698384755949535}.
+\]
+
+For M2, $\partial_A P_2$ has the sign of $LV_2(s-A)-V_3(s)$. Since $s-A>28$, $s<35$, and $L>1600$,
+\[
+LV_2(s-A)\geq1600\cdot47^2\frac{28^2}{2}
+>49^3\frac{35^3}{6}\geq V_3(s).
+\]
+Fix $A=5.0227$. For $H(E)=V_3(s)-LV_2(s-E)$, we have $P'_2(E)=3H(E)/L^4$. With $y=s-E$, differentiation gives
+\[
+H'(E)=-2V_2(y)+LV'_2(y)+2LV_1(s-2E).
+\]
+For $0<y<35$, $V'_2(y)\geq47^2y$ and $2V_2(y)\leq49^2y^2$. Since $1600\cdot47^2>49^2\cdot35$, $H$ is strictly increasing. Exact rational arithmetic gives
+\[
+H(14.7028877559324)<0<H(14.7028877559326).
+\]
+The unique root $E_*$ attains the minimum. The coordinate $e_*$ lies inside its band, at about $1805.297112244\unit$. The coordinates $a,b,c$ are at their upper endpoints and $x$ takes one of the three values given above. Since $P'_2$ is $3/L$ times the difference of two probabilities, $|P'_2|<3/1600$. We evaluate the function at the midpoint of the root interval and enlarge the enclosure using this derivative bound. This gives
+\[
+0.15504888347310<\min p_2<0.15504888347311.
+\]
+
+\subsection{Minimum for M3}
+
+For $\phi=-t$ modulo 70 and $0\leq t\leq12.0454$, the coordinates $b,c$ initially lie below their grid centers by at least $12.121$ and $22.16$. Their contributions decrease by at least $t$ each, by using their original grid points after translation. The contribution from $x$ increases by at most $t$ by the triangle inequality. The sum of the changes for $a,e$ is bounded above by $|t-A|-A+|t-E|-E$. This is at most $t$ when $t\leq2(A+E)$, as follows by considering the position of $t$ relative to $A,E$. Since $2(A+E)\geq12.0454$, we have $S_{-t}\leq S_0$ on this arc and $p_3\geq12.0454/70$.
+
+At the quintuple $(134.9773,547.879,957.84,1260,1819)$, the initial score is $40.3037$. The shifted score is affine between the breakpoints $g$ and $g+35$, where $g$ runs through the distances below the grid $(5.0227,12.121,22.16,0,1)$. Table~\ref{tab:phase} gives the scores at the breakpoints and at the end of the period. Interpolation yields $\{t\in[0,70]:S_{-t}\leq S_0\}=[0,12.0454]\cup\{70\}$. This equality is also checked in Lean. Hence $\min p_3=60227/350000$.
+
+\begin{table}[htbp]
+\centering
+\caption{Shifted score $S_{-t}$ at the witness for M3.}
+\label{tab:phase}
+\begin{tabular}{rr@{\qquad}rr}
+\toprule
+$t$ & $S_{-t}$ & $t$ & $S_{-t}$\\
+\midrule
+$0$      & $40.3037$ & $36$      & $137.6963$\\
+$1$      & $37.3037$ & $40.0227$ & $141.7190$\\
+$5.0227$ & $33.2810$ & $47.121$  & $134.6207$\\
+$12.121$ & $40.3793$ & $57.16$   & $104.5037$\\
+$22.16$  & $70.4963$ & $70$      & $40.3037$\\
+$35$     & $134.6963$ &            &\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Conditional size at the witness extremes}
+
+At the extremes $a=134.9773$, $e=1819$, the sum of the fixed distances is $\delta=6.0227$. At $\alpha=0.05$, rational evaluation of $V_5/L^5$ yields the quantile enclosure
+\[
+50.001088928<q_{0.05,I}<50.001088930.
+\]
+Monotonicity of $V_3/L^3$ and \eqref{eq:cond} give
+\[
+0.3245930589<C_I(0.05)<0.3245930591.
+\]
+The span differs from an integer multiple of the grid spacing. This calculation uses the two partial branches of its density.
+
+\section{Discussion}
+
+All three probabilities remain above $1\%$ over the selected bands. The M2 and M3 tests also remain above $5\%$ under their respective null hypotheses. M1 crosses $5\%$ over this domain, and its conditional size at the witness extremes differs from the nominal level. Proposition~\ref{prop:general} shows how this discrepancy depends on the phase when the interval covers an integer number of periods.
+
+The analysis is retrospective. The sensitivity bands have no specified joint coverage. The two tests assume respectively a uniform mass sample and invariance of the common phase. Their conclusions concern a fixed spacing and origin. Any selection of spacing or origin from the data would need to be repeated in the reference calculation. The sensitivity results concern tail probabilities and leave open the power against specified physical alternatives.
+
+The observed levels establish neither mass quantization nor the absence of all physical regularities. The methodological result is the conditional calibration discrepancy of M1 and its explicit expression. Extending inference to the meson spectrum would require a corpus-selection protocol and specified physical alternatives. This working paper is offered for discussion and revision, without a claim of peer review.
+
+\section*{Data and computation}
+
+The supplement contains the CSV table, a Python script using rational arithmetic, Lean sources for Lean 4.19.0 with Mathlib 4.19.0, and their outputs. Lean checks the phase-arc measure and its minimum for M3, the simplex volume and unit-cube lower tails, the rational enclosures, and the algebraic identity in \eqref{eq:small}. The manuscript derives the conditional laws and convolutions for M1 and M2 and establishes the analytic hypotheses used in their optimization.
+
+\paragraph{Axiophysis and its Phylab module.}
+Axiophysis is an interactive software laboratory for research and simulation in physics. It allows models to be built and explored using explicit physical laws, metrics, and initial conditions, and their numerical dynamics to be followed. Its Phylab module supports an iterative research process: formulating hypotheses, organizing numerical experiments, comparing models, preserving results, and producing reports. Phylab served as an exploration tool for this study. The supplied numerical calculations are reproduced by the rational Python script; the formalized statements are checked with Lean.
+
+\begin{thebibliography}{99}
+\bibitem{nambu} Y. Nambu, \emph{An Empirical Mass Spectrum of Elementary Particles}, Prog. Theor. Phys. \textbf{7}, 595--596 (1952). \href{https://doi.org/10.1143/PTP.7.5.595}{doi:10.1143/PTP.7.5.595}.
+\bibitem{palazzi} P. Palazzi, \emph{The Meson Mass System}, Int. J. Mod. Phys. A \textbf{22}, 546--549 (2007). \href{https://doi.org/10.1142/S0217751X0703580X}{doi:10.1142/S0217751X0703580X}.
+\bibitem{macgregor} M. H. Mac Gregor, \emph{A Muon Mass Tree with alpha-quantized Lepton, Quark and Hadron Masses}, preprint (2006). \href{https://arxiv.org/abs/hep-ph/0607233}{arXiv:hep-ph/0607233}.
+\bibitem{order} H. A. David and H. N. Nagaraja, \emph{Order Statistics}, 3rd ed., Wiley (2003), Chap.~2. \href{https://doi.org/10.1002/0471722162}{doi:10.1002/0471722162}.
+\bibitem{lilliefors} H. W. Lilliefors, \emph{On the Kolmogorov-Smirnov Test for Normality with Mean and Variance Unknown}, J. Am. Stat. Assoc. \textbf{62}, 399--402 (1967). \href{https://doi.org/10.1080/01621459.1967.10482916}{doi:10.1080/01621459.1967.10482916}.
+\bibitem{lockhart} R. A. Lockhart, \emph{Conditional limit laws for goodness-of-fit tests}, Bernoulli \textbf{18}, 857--882 (2012). \href{https://doi.org/10.3150/11-BEJ366}{doi:10.3150/11-BEJ366}. \href{https://arxiv.org/abs/1207.5967}{arXiv:1207.5967}.
+\bibitem{vonmises} R. A. Lockhart, F. O'Reilly, and M. Stephens, \emph{Exact Conditional Tests and Approximate Bootstrap Tests for the von Mises Distribution}, J. Stat. Theory Pract. \textbf{3}, 543--554 (2009). \href{https://doi.org/10.1080/15598608.2009.10411945}{doi:10.1080/15598608.2009.10411945}.
+\bibitem{hemerik} J. Hemerik and J. Goeman, \emph{Exact testing with random permutations}, TEST \textbf{27}, 811--825 (2018). \href{https://doi.org/10.1007/s11749-017-0571-1}{doi:10.1007/s11749-017-0571-1}.
+\bibitem{irwinhall} J. E. Marengo, D. L. Farnsworth, and L. Stefanic, \emph{A Geometric Derivation of the Irwin-Hall Distribution}, Int. J. Math. Math. Sci., 3571419 (2017). \href{https://doi.org/10.1155/2017/3571419}{doi:10.1155/2017/3571419}.
+\bibitem{pdg} S. Navas et al. (Particle Data Group), \emph{Review of Particle Physics}, Phys. Rev. D \textbf{110}, 030001 (2024). \href{https://doi.org/10.1103/PhysRevD.110.030001}{doi:10.1103/PhysRevD.110.030001}. \href{https://pdg.lbl.gov/2024/tables/rpp2024-sum-mesons.pdf}{Meson tables}, pp.~2, 5, 11, and 20, PDF dated 24 April 2025.
+\bibitem{pion} Particle Data Group, \href{https://pdg.lbl.gov/2024/listings/rpp2024-list-pi-1300.pdf}{$\pi(1300)$ listing}, 2024 edition, \emph{Mass} section.
+\end{thebibliography}
+\end{document}

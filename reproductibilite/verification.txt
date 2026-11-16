@@ -1,0 +1,15 @@
+Exact output agrees with resultats.txt.
+Sensitivity diagnostics: 334 configurations (all corners, witnesses, 300 sampled points); density preimages agree.
+Monte Carlo: seed=20261115, N=200000 per configuration.
+nominal M1: MC=0.360405, exact=0.361078916387, SE=0.001074
+nominal M2: MC=0.739155, exact=0.739463414792, SE=0.000981
+nominal M3: MC=0.454365, exact=0.453606857143, SE=0.001113
+M1/M3 witness M1: MC=0.017485, exact=0.017317449833, SE=0.000292
+M1/M3 witness M2: MC=0.157830, exact=0.158349321668, SE=0.000816
+M1/M3 witness M3: MC=0.172360, exact=0.172077142857, SE=0.000844
+M2 root midpoint M1: MC=0.069745, exact=0.069898319013, SE=0.000570
+M2 root midpoint M2: MC=0.154505, exact=0.155048883473, SE=0.000809
+M2 root midpoint M3: MC=0.303375, exact=0.303300835771, SE=0.001028
+Conditional rejection at 5%: M1: MC=0.325520, exact=0.324593059009, SE=0.001047
+Conditional rejection at 5%: M2: MC=0.050920, exact=0.050000000000, SE=0.000487
+All audit checks passed. Sampled checks do not prove global minima.

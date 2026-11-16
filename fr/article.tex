@@ -1,0 +1,289 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,booktabs}
+\usepackage[hidelinks]{hyperref}
+\usepackage{lmodern}
+\usepackage{microtype}
+\setlength{\emergencystretch}{2em}
+\renewcommand{\abstractname}{Résumé}
+\renewcommand{\refname}{Références}
+\renewcommand{\tablename}{Tableau}
+\newtheorem{proposition}{Proposition}
+\renewcommand{\proofname}{Démonstration}
+\newcommand{\unit}{\,\mathrm{MeV}/c^{2}}
+\newcommand{\ind}{\mathbf{1}}
+\newcommand{\Prb}{\mathbb P}
+\title{Tests de proximité à une grille périodique\\[2pt]
+\large Effet des extrema ajustés et application à cinq masses de mésons}
+\author{Frederic Loth\\[4pt]
+\small Recherche indépendante}
+\date{Document de travail méthodologique\\Version du 16 novembre 2026}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+Ce document de travail étudie l'étalonnage conditionnel d'un test qui compare la somme des distances à une grille périodique à celle de tirages uniformes. Lorsque les bornes de la loi uniforme sont fixées aux extrema observés, le rééchantillonnage des deux extrema peut déformer la taille conditionnelle. Nous obtenons une expression exacte pour une plage couvrant un nombre entier de périodes. Lorsque ses bornes sont sur la grille, au niveau nominal $\alpha\leq 1/n!$, la taille conditionnelle vaut $(n!\alpha)^{(n-2)/n}/(n-2)!$ pour $n\geq 3$. Nous appliquons le calcul à cinq mésons pseudoscalaires et à une grille de pas $70\unit$. Pour une paire d'extrema admissible, la règle ajustée au niveau nominal $5\,\%$ rejette avec une probabilité conditionnelle de $32{,}46\,\%$. Les minima des probabilités de queue sur les bandes de sensibilité valent $0{,}01731745$ pour cette référence descriptive, $0{,}15504888$ pour le test conditionné sur les extrema et $0{,}17207714$ pour le test de phase commune. Les calculs combinent intégration exacte et contrôles arithmétiques en Lean. L'application constitue un cas méthodologique rétrospectif, sans mise en évidence d'une quantification physique des masses.
+\end{abstract}
+\noindent\textbf{Mots-clés.} Test conditionnel, statistiques d'ordre, grille périodique, taille du test, mésons pseudoscalaires.
+
+\section{Objet et positionnement}
+
+Ce document de travail a un objectif méthodologique : calculer l'effet du remplacement des extrema observés dans une référence uniforme ajustée aux données. La proximité à une grille fournit un score simple pour lequel on peut comparer exactement les lois de référence et étudier leur dépendance à la phase des bornes.
+
+Les démonstrations analytiques sont accompagnées de calculs Python en arithmétique rationnelle et de vérifications partielles en Lean. L'application aux masses illustre les conséquences de choix de référence différents sur un petit corpus fixé. Les résultats physiques éventuels dépendent de ce corpus et des hypothèses statistiques retenues.
+
+Nambu a proposé une régularité empirique du spectre de masse \cite{nambu}. Palazzi a étudié des multiples avec des unités dépendant de groupes définis par la composition et $J^{PC}$ \cite{palazzi}. Une proposition de Mac Gregor utilise notamment un pas de $70{,}03\unit$ pour des pseudoscalaires \cite{macgregor}. Nous prenons comme cas d'étude une grille fixe de pas $70\unit$ et d'origine zéro, sur une sélection rétrospective qui réunit des états de plusieurs isospins.
+
+Le problème statistique apparaît lorsqu'on compare le score des observations à celui de tirages indépendants sur l'intervalle allant du minimum au maximum de ces mêmes observations. Les deux observations qui fixent la plage apportent au score des distances déterminées. Leur contribution change quand on les remplace par deux nouveaux tirages. Le conditionnement sur les statistiques d'ordre extrêmes donne une loi de comparaison adaptée au modèle uniforme \cite{order}. Pour les grilles périodiques, nous calculons l'écart entre ces procédures et sa dépendance à la phase des bornes.
+
+\subsection{Travaux antérieurs et apport méthodologique}\label{sec:prior}
+
+L'effet de paramètres estimés sur l'étalonnage d'un test est classique. Lilliefors l'étudie pour le test de Kolmogorov--Smirnov de normalité à moyenne et variance inconnues \cite{lilliefors}. Lockhart compare les lois conditionnelles et les références bootstrap dans des familles exponentielles, avec des résultats asymptotiques \cite{lockhart}. Ces cadres ne donnent pas directement le calcul fini étudié ici, dont le support uniforme dépend des extrema.
+
+Pour les données circulaires, Lockhart, O'Reilly et Stephens comparent déjà tests conditionnels et bootstrap sous une loi de von Mises \cite{vonmises}. Leur statistique de Watson et leur conditionnement par une statistique suffisante diffèrent du score de grille et du conditionnement sur la configuration relative utilisés ici.
+
+Le conditionnement par statistiques d'ordre \cite{order}, la loi d'Irwin--Hall et son calcul par inclusion-exclusion \cite{irwinhall}, ainsi que le principe de randomisation \cite{hemerik}, sont des outils connus. M2 et M3 en sont des applications à ce problème. Le principe de ces tests n'est pas revendiqué comme nouveau.
+
+L'apport de ce document est une spécialisation analytique et reproductible : la proposition~\ref{prop:general} explicite la taille conditionnelle de M1 en fonction de la phase des bornes, son régime de petite queue et le passage du sur-rejet au sous-rejet ; la section~\ref{sec:application} fournit les minima sur un domaine de sensibilité fixé, dont un minimum de M2 intérieur à une bande. Le dossier associe ces calculs à des vérifications rationnelles et à une formalisation partielle.
+
+La recherche bibliographique ciblée, arrêtée au 16 novembre 2026, a porté sur l'étalonnage avec paramètres estimés, le conditionnement sur les extrema, les références bootstrap et les tests pour données circulaires. Elle s'appuie sur les publications citées, les notices des éditeurs, les dépôts institutionnels et arXiv. Pour Lilliefors, seuls la notice, le résumé et les métadonnées ont été consultés ; les textes de Lockhart de 2012 et de Lockhart, O'Reilly et Stephens de 2009 ont été consultés intégralement.
+
+Cette recherche n'a pas identifié, parmi les sources examinées, le calcul dépendant de la phase accompagné des minima sur les bandes présentés ici. Ce constat circonscrit la spécialisation proposée ; il ne constitue pas une recherche exhaustive ni une preuve de priorité bibliographique. Le présent statut de document de travail permet de soumettre cette contribution et ses limites à la discussion.
+
+\section{Score et lois de référence}
+
+Soient $P>0$ le pas, $h=P/2$ et $d_P(x)=\min_{k\in\mathbb Z}|x-kP|$. Pour $n\geq3$ observations $m=(m_1,\ldots,m_n)$, posons
+\[
+S_\phi(m)=\sum_{i=1}^n d_P(m_i-\phi), \qquad
+a=\min_i m_i,\quad e=\max_i m_i,\quad I=[a,e].
+\]
+On suppose $a<e$. Les petites valeurs de $S_0$ indiquent une plus forte proximité. Pour $Y_j$ indépendants et uniformes sur $I$, on note $F_{r,I}$ la fonction de répartition de $\sum_{j=1}^r d_P(Y_j)$ et $\delta=d_P(a)+d_P(e)$.
+
+\paragraph{Référence à bornes ajustées (M1).}
+On calcule $p_1=F_{n,I}(S_0)$ avec $n$ nouveaux tirages sur $I$. Cette probabilité de queue sert de référence descriptive.
+
+\paragraph{Test conditionné sur les extrema (M2).}
+Sous l'hypothèse nulle d'un échantillon iid uniforme sur un intervalle inconnu, les $n-2$ observations intérieures ordonnées, conditionnellement à $(a,e)$, ont une densité $(n-2)!/(e-a)^{n-2}$ sur le simplexe ordonné entre $a$ et $e$. On normalise pour cela la densité conjointe constante des statistiques d'ordre \cite{order}. Comme la somme est symétrique, elle a la même loi avec $n-2$ tirages iid sur $I$. La $p$-valeur conditionnelle est
+\begin{equation}\label{eq:m2}
+p_2=F_{n-2,I}(S_0-\delta).
+\end{equation}
+La loi de la distance est continue pour une masse uniforme sur tout intervalle de longueur positive, par découpage du profil triangulaire en segments de pente $\pm1$. Sous l'hypothèse nulle, $p_2$ est donc uniforme conditionnellement aux extrema.
+
+\paragraph{Test de phase commune (M3).}
+On compare l'origine zéro aux translations sur un tour par
+\begin{equation}\label{eq:m3}
+p_3=P^{-1}\,\operatorname{longueur}\{\phi\in[0,P):S_\phi(m)\leq S_0(m)\}.
+\end{equation}
+La condition nulle est l'uniformité de la phase commune sachant la configuration relative modulo $P$. Pour une origine fixée, si $F$ est la fonction de répartition conditionnelle du score de phase, cette expression vaut $F(S_0)$. L'inclusion des égalités assure $\Prb(p_3\leq\alpha)\leq\alpha$ sous cette condition, y compris avec des plateaux. La longueur se calcule par interpolation linéaire entre les ruptures $\phi=m_i$ et $\phi=m_i+h$ modulo $P$. Pour le principe de randomisation dans les groupes finis, voir \cite{hemerik}.
+
+\section{Taille conditionnelle de la référence ajustée}
+
+Soit $q_{\alpha,I}=F_{n,I}^{-1}(\alpha)$ pour $0<\alpha<1$. La fonction de répartition croît strictement à l'intérieur du support de la somme. La distance sur $I$ couvre un intervalle et toute plage ouverte intérieure à cet intervalle possède une préimage de longueur positive. La somme de $n$ tirages a cette même propriété sur son support. Sous l'hypothèse uniforme de M2, la règle $p_1\leq\alpha$ a donc, conditionnellement aux extrema, la taille
+\begin{equation}\label{eq:cond}
+C_I(\alpha)=F_{n-2,I}(q_{\alpha,I}-\delta).
+\end{equation}
+La variance du score de référence vaut $n\,\mathrm{Var}(d_P(Y_1))$. Celle du score observé conditionnel vaut $(n-2)\,\mathrm{Var}(d_P(Y_1))$. La variance de la distance est positive puisque $d_P$ varie sur $I$. Les deux distributions diffèrent, ce qui exclut un étalonnage conditionnel exact de M1 à tous les niveaux.
+
+\begin{proposition}\label{prop:general}
+Si $e-a=kP$ pour un entier $k\geq1$, soit $G_r$ la fonction de répartition de la somme de $r$ variables iid uniformes sur $[0,1]$. Alors
+\begin{equation}\label{eq:irwin}
+C_I(\alpha)=G_{n-2}\!\left(G_n^{-1}(\alpha)-\frac{2d_P(a)}{h}\right).
+\end{equation}
+À longueur $kP$ fixée, cette taille est maximale lorsque $a,e\in P\mathbb Z$. Dans ce cas, pour $0<\alpha\leq1/n!$,
+\begin{equation}\label{eq:small}
+C_I(\alpha)=\frac{(n!\alpha)^{(n-2)/n}}{(n-2)!},
+\qquad
+\frac{C_I(\alpha)}{\alpha}=\frac{n(n-1)}{(n!\alpha)^{2/n}}.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+La réduction d'un tirage uniforme sur $k$ périodes modulo $P$ donne une phase uniforme sur un tour. Sur un tour, chaque distance dans $(0,h)$ possède deux antécédents, avec une dérivée de valeur absolue 1 sur les deux branches. Ainsi $d_P(Y_j)/h$ est uniforme sur $[0,1]$. Les deux extrema ont la même phase et $\delta=2d_P(a)$. L'équation~\eqref{eq:cond} donne \eqref{eq:irwin}. La monotonie de $G_{n-2}$ donne une phase de taille maximale. Si les deux extrema sont sur la grille et $\alpha\leq1/n!$, le quantile réduit $q=G_n^{-1}(\alpha)$ est dans $(0,1]$. Le simplexe de somme au plus $q$ est inclus dans le cube unité, donc $G_r(q)=q^r/r!$. La substitution de $q=(n!\alpha)^{1/n}$ donne \eqref{eq:small}.
+\end{proof}
+
+Le passage du sur-rejet au sous-rejet se produit exactement à
+\[
+\frac{2d_P(a)}{h}=G_n^{-1}(\alpha)-G_{n-2}^{-1}(\alpha).
+\]
+Cette différence est dans $(0,2)$. En effet, si $v=G_{n-2}^{-1}(\alpha)$ et $W$ est la somme de deux nouvelles uniformes sur $[0,1]$, alors $0<W<2$ presque sûrement. En moyennant $G_{n-2}(v-W)$ et $G_{n-2}(v+2-W)$, on obtient $G_n(v)<\alpha<G_n(v+2)$. Par \eqref{eq:irwin}, la taille dépasse $\alpha$ en dessous du seuil de phase et lui est inférieure au-dessus.
+
+Pour $n=5$ et $\alpha=1/120$, la taille à phase alignée vaut $1/6$, soit vingt fois le niveau nominal. À $\alpha=0{,}05$, \eqref{eq:irwin} donne environ $45{,}11\,\%$ si $d_P(a)=0$, $1{,}37\,\%$ si $d_P(a)=h/2$ et $0\,\%$ si $d_P(a)=h$. Ces valeurs utilisent l'inclusion-exclusion pour $G_r$ \cite{irwinhall}. Le rapport dans \eqref{eq:small} diverge quand $\alpha$ tend vers zéro, tandis que la taille absolue tend vers zéro. La taille marginale dépend de la distribution des extrema. L'expression conditionnelle est continue en $(a,e)$ pour $a<e$. On peut en effet coupler les tirages par $Y_j=a+(e-a)U_j$ et utiliser la continuité des lois de somme ainsi que l'unicité du quantile intérieur. Une inégalité stricte à une paire d'extrema vaut donc dans un voisinage de cette paire.
+
+\section{Application aux masses de mésons}\label{sec:application}
+
+\subsection{Choix du corpus et portée du cas d'étude}
+
+Le corpus réunit cinq mésons pseudoscalaires de la catégorie des mésons légers non aromatisés du PDG ($S=C=B=0$), avec des isospins différents \cite{pdg}. Le choix est intentionnel et rétrospectif. Sa justification est celle d'un petit cas d'étude permettant des calculs exacts et une analyse explicite des bandes de sensibilité.
+
+Le trio $\pi^0,\eta,\eta'$ fournit des masses précises dont les contributions varient peu sur leurs bandes. Les deux résonances $\pi(1300)$ et $\pi(1800)$ introduisent des variations plus larges. La bande de $\pi(1300)$ contient trois points de grille et permet d'étudier le déplacement d'une observation intérieure ; celle de $\pi(1800)$ fait varier l'extremum supérieur et donc la loi de référence ajustée. L'extremum inférieur reste $\pi^0$ sur tout le domaine. Cette combinaison sépare l'effet du score de celui des bornes tout en gardant une optimisation accessible.
+
+Ce corpus n'est pas un inventaire complet des pseudoscalaires : les partenaires chargés du pion et d'autres états, notamment $\eta(1295)$, $\eta(1405)$ et $\eta(1475)$, ne sont pas inclus \cite{pdg}. Les cinq masses ne constituent donc ni un échantillon aléatoire justifié par cette sélection, ni une famille homogène en isospin. La justification méthodologique donnée ici ne constitue pas un protocole de sélection antérieur à l'examen des données. Les résultats de l'application portent sur ce cas fixé ; les formules générales de la section précédente ne dépendent pas du choix de ces particules.
+
+\subsection{Données et bandes de sensibilité}
+
+Les masses du tableau~\ref{tab:data} proviennent du PDG 2024 \cite{pdg,pion}. La bande de $\pi(1300)$ est construite à partir de l'estimation $1300\pm100\unit$. Sa fiche répertorie également des déterminations individuelles en dehors de cette bande. Les autres bandes reprennent les incertitudes rapportées. Leur produit définit un domaine déterministe de sensibilité sans modèle joint des erreurs de mesure. Pour $P=70$ et $n=5$, le score moyen nominal $S_0/5$ vaut $15{,}87624\unit$. Le tableau~\ref{tab:results} donne les probabilités nominales et les minima démontrés ci-après.
+
+\begin{table}[htbp]
+\centering
+\caption{Masses et bandes de sensibilité en $\mathrm{MeV}/c^2$.}
+\label{tab:data}
+\begin{tabular}{lrrr}
+\toprule
+Entrée & Masse nominale & Borne inférieure & Borne supérieure\\
+\midrule
+$\pi^0$     & $134{,}9768$ & $134{,}9763$ & $134{,}9773$\\
+$\eta$      & $547{,}862$  & $547{,}845$  & $547{,}879$\\
+$\eta'$     & $957{,}78$   & $957{,}72$   & $957{,}84$\\
+$\pi(1300)$ & $1300$       & $1200$       & $1400$\\
+$\pi(1800)$ & $1810$       & $1799$       & $1819$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Probabilités de queue nominales et minima sur le produit des bandes.}
+\label{tab:results}
+\begin{tabular}{lrr}
+\toprule
+Référence & Masses nominales & Minimum sur les bandes\\
+\midrule
+M1, uniforme à bornes ajustées & $0{,}361078916$ & $0{,}017317449833$\\
+M2, uniforme conditionnée & $0{,}739463415$ & $0{,}155048883473$\\
+M3, phase commune & $0{,}453606857$ & $0{,}172077142857$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Densité exacte et réduction de l'optimisation}
+
+Écrivons $(a,b,c,x,e)$ dans l'ordre du tableau~\ref{tab:data}. Les extrema sont $a$ et $e$ sur tout le domaine. On pose $A=140-a$, $E=1820-e$ et $L=1680+A-E$. On a $A\in[5{,}0227;5{,}0237]$, $E\in[1;21]$ et $L>1600$. La densité de $d_{70}(Y_1)$ vaut $f/L$, où, presque partout,
+\[
+f(z)=47\ind_{[0,35]}(z)+\ind_{[0,A]}(z)+\ind_{[E,35]}(z).
+\]
+Il y a 46 branches complètes dans $[140,1750]$ et une autre dans $[1750,1785]$. Les tronçons $[a,140]$ et $[1785,e]$ donnent les deux termes variables. Toutes les branches ont une pente de valeur absolue 1 et $\int f=L$.
+
+Soit $V_r(y;A,E)$ l'intégrale de $\prod_{j=1}^r f(z_j)$ sur $z_j\geq0$, $\sum_j z_j\leq y$, avec $V_r=0$ pour $y<0$. Avec les n\oe{}uds $(t_i)=(0,A,E,35)$ et les sauts $(w_i)=(48,-1,1,-48)$,
+\begin{equation}\label{eq:vol}
+V_r(y;A,E)=\frac1{r!}\sum_{i_1,\ldots,i_r=1}^4
+\left(\prod_{j=1}^r w_{i_j}\right)
+\left(y-\sum_{j=1}^r t_{i_j}\right)_+^r.
+\end{equation}
+On développe le produit des densités en fonctions en escalier puis on translate les coordonnées pour obtenir des volumes de simplexes. Ainsi $F_{r,I}=V_r/L^r$. Dans le programme, regrouper les indices par multiplicité remplace le facteur $1/r!$ par le produit des inverses des factorielles de ces multiplicités.
+
+Pour $A,E$ fixés, M1 et M2 croissent strictement avec leurs seuils de somme sur l'intérieur du support. En effet, $f\geq47$ sur $[0,35]$ et toute tranche de somme ouverte dans $(0,35r)$ rencontre l'intérieur de $[0,35]^r$. Les seuils observés appartiennent à ces supports. Leur minimisation force $b=547{,}879$, $c=957{,}84$ et $x\in\{1260,1330,1400\}$, les points de grille dans sa bande. Avec $s=34{,}281$, il reste à minimiser
+\[
+P_1(A,E)=L^{-5}V_5(s+A+E;A,E),\qquad
+P_2(A,E)=L^{-3}V_3(s;A,E).
+\]
+
+\subsection{Minima de M1 et M2}
+
+À $y$ fixé, pour $r\geq2$, la dérivation de \eqref{eq:vol} donne
+\[
+\partial_A V_r(y)=rV_{r-1}(y-A),\qquad
+\partial_E V_r(y)=-rV_{r-1}(y-E).
+\]
+Pour chaque position du n\oe{}ud variable, la dérivée réduit d'un degré la puissance positive. Le signe du saut et celui de la dérivée du n\oe{}ud donnent les signes affichés. Les puissances positives sont dérivables aux n\oe{}uds pour $r\geq2$.
+
+Pour M1, $y=s+A+E$ appartient à $(35,70)$. Le produit des densités se décompose en la contribution de $47^5$ sur le cube et un reste positif dont le volume de queue est croissant. Par inclusion-exclusion,
+\[
+V'_5(y)\geq47^5\frac{y^4-5(y-35)^4}{24}
+\geq\frac{47^5}{2}\frac{y^4}{24}.
+\]
+En majorant la densité sur le simplexe, $V_5(y)\leq49^5y^5/120$ et $V_4(y-E)\leq49^4y^4/24$. Les dérivées de $P_1$ en $A,E$, multipliées par $L^5$, valent respectivement
+\[
+V'_5(y)+5V_4(y-A)-5V_5(y)/L,\qquad
+V'_5(y)-5V_4(y-E)+5V_5(y)/L.
+\]
+Elles sont positives puisque $47^5/2>49^5(70/1600)$ et $47^5/2>5\cdot49^4$. Le minimum est atteint pour $A=5{,}0227$, $E=1$ et \eqref{eq:vol} donne
+\[
+\min p_1=\frac{117271815670703024016458494058250829}
+{6771887131105517591313698384755949535}.
+\]
+
+Pour M2, $\partial_A P_2$ a le signe de $LV_2(s-A)-V_3(s)$. Comme $s-A>28$, $s<35$ et $L>1600$,
+\[
+LV_2(s-A)\geq1600\cdot47^2\frac{28^2}{2}
+>49^3\frac{35^3}{6}\geq V_3(s).
+\]
+Fixons $A=5{,}0227$. Pour $H(E)=V_3(s)-LV_2(s-E)$, on a $P'_2(E)=3H(E)/L^4$. Avec $y=s-E$, la dérivation donne
+\[
+H'(E)=-2V_2(y)+LV'_2(y)+2LV_1(s-2E).
+\]
+Sur $0<y<35$, $V'_2(y)\geq47^2y$ et $2V_2(y)\leq49^2y^2$. Puisque $1600\cdot47^2>49^2\cdot35$, $H$ croît strictement. En rationnels,
+\[
+H(14{,}7028877559324)<0<H(14{,}7028877559326).
+\]
+La racine unique $E_*$ réalise le minimum. La coordonnée $e_*=1820-E_*$ vaut environ $1805{,}297112244\unit$ et est intérieure à sa bande. Les coordonnées $a,b,c$ sont à leurs bornes supérieures et $x$ prend l'une des trois valeurs indiquées plus haut. Comme $P'_2$ est $3/L$ fois une différence de probabilités, $|P'_2|<3/1600$. On évalue la fonction au milieu de l'intervalle de $E_*$ puis on élargit le résultat par cette borne de dérivée. Il vient
+\[
+0{,}15504888347310<\min p_2<0{,}15504888347311.
+\]
+
+\subsection{Minimum de M3}
+
+Pour $\phi=-t$ modulo 70 et $0\leq t\leq12{,}0454$, $b,c$ se trouvent sous leurs centres de grille d'au moins $12{,}121$ et $22{,}16$. Leurs contributions diminuent d'au moins $t$ chacune, en utilisant leurs points de grille initiaux après translation. Celle de $x$ augmente d'au plus $t$ par l'inégalité triangulaire. La somme des variations de $a,e$ est majorée par $|t-A|-A+|t-E|-E$. Ce terme est au plus $t$ si $t\leq2(A+E)$, comme on le voit en distinguant les positions de $t$ par rapport à $A,E$. Or $2(A+E)\geq12{,}0454$. Donc $S_{-t}\leq S_0$ sur l'arc et $p_3\geq12{,}0454/70$.
+
+Au quintuplet $(134{,}9773,547{,}879,957{,}84,1260,1819)$, le score initial est $40{,}3037$. Le score translaté est affine entre les ruptures $g$ et $g+35$, où $g$ parcourt les distances sous la grille $(5{,}0227,12{,}121,22{,}16,0,1)$. Le tableau~\ref{tab:phase} donne les valeurs aux ruptures et au bout du tour. L'interpolation donne l'ensemble $\{t\in[0,70]:S_{-t}\leq S_0\}=[0,12{,}0454]\cup\{70\}$. L'égalité est également vérifiée en Lean. Ainsi $\min p_3=60227/350000$.
+
+\begin{table}[htbp]
+\centering
+\caption{Score translaté $S_{-t}$ au témoin de M3.}
+\label{tab:phase}
+\begin{tabular}{rr@{\qquad}rr}
+\toprule
+$t$ & $S_{-t}$ & $t$ & $S_{-t}$\\
+\midrule
+$0$        & $40{,}3037$  & $36$      & $137{,}6963$\\
+$1$        & $37{,}3037$  & $40{,}0227$ & $141{,}7190$\\
+$5{,}0227$ & $33{,}2810$  & $47{,}121$ & $134{,}6207$\\
+$12{,}121$ & $40{,}3793$  & $57{,}16$  & $104{,}5037$\\
+$22{,}16$  & $70{,}4963$  & $70$       & $40{,}3037$\\
+$35$       & $134{,}6963$ &             & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Taille conditionnelle aux extrema du témoin}
+
+Aux extrema $a=134{,}9773$, $e=1819$, la somme des distances fixes vaut $\delta=6{,}0227$. Pour $\alpha=0{,}05$, on encadre le quantile par l'évaluation rationnelle de $V_5/L^5$
+\[
+50{,}001088928<q_{0{,}05,I}<50{,}001088930.
+\]
+La monotonie de $V_3/L^3$ et l'équation~\eqref{eq:cond} donnent
+\[
+0{,}3245930589<C_I(0{,}05)<0{,}3245930591.
+\]
+La plage a une longueur qui diffère d'un multiple exact du pas. Le calcul utilise les deux branches partielles de sa densité.
+
+\section{Discussion}
+
+Les trois probabilités restent au-dessus de $1\,\%$ sur les bandes retenues. Les tests M2 et M3 restent au-dessus de $5\,\%$ sous leurs hypothèses nulles respectives. La référence M1 franchit $5\,\%$ sur ce domaine et sa taille conditionnelle aux extrema du témoin diffère du niveau nominal. La proposition~\ref{prop:general} établit comment cet écart dépend de la phase lorsque la plage couvre un nombre entier de périodes.
+
+L'analyse est rétrospective. Les bandes n'ont pas de couverture conjointe spécifiée. Les tests supposent respectivement un échantillon uniforme en masse et une invariance de la phase commune. Leurs conclusions concernent un pas et une origine donnés. Un ajustement du pas ou de l'origine aux données devrait être reproduit dans le calcul de référence. Les résultats de sensibilité portent sur les probabilités de queue et laissent ouverte la puissance contre des alternatives physiques spécifiées.
+
+Les niveaux observés n'établissent ni une quantification des masses ni l'absence de toute régularité physique. Le résultat méthodologique est l'écart d'étalonnage conditionnel de M1 et son expression explicite. Étendre l'inférence au spectre des mésons demanderait un protocole de constitution du corpus et des alternatives physiques spécifiées. Ce document de travail est proposé pour discussion et révision, sans revendication d'évaluation par les pairs.
+
+\section*{Données et calcul}
+
+Le supplément contient le tableau CSV, le script Python en rationnels, les sources Lean 4.19.0 avec Mathlib 4.19.0 et leurs sorties. Lean vérifie la mesure de l'arc de phase et son minimum pour M3, le volume du simplexe et les probabilités de queue dans le cube unité, les encadrements rationnels et l'identité algébrique de \eqref{eq:small}. Les dérivations des lois conditionnelles et des convolutions de M1 et M2, ainsi que les hypothèses analytiques utilisées dans leur optimisation, sont détaillées dans le manuscrit.
+
+\paragraph{Axiophysis et son module Phylab.}
+Axiophysis est un laboratoire logiciel interactif de recherche et de simulation en physique. Il permet de construire et d'explorer des modèles à partir de lois physiques, de métriques et de conditions initiales explicites, puis d'en suivre la dynamique numérique. Son module Phylab accompagne une démarche de recherche itérative : formulation d'hypothèses, organisation d'expériences numériques, comparaison de modèles, conservation des résultats et production de rapports. Phylab a servi d'outil d'exploration pour cette étude. Les calculs numériques livrés sont reproduits par le script Python en rationnels ; les énoncés formalisés sont vérifiés avec Lean.
+
+\begin{thebibliography}{99}
+\bibitem{nambu} Y. Nambu, \emph{An Empirical Mass Spectrum of Elementary Particles}, Prog. Theor. Phys. \textbf{7}, 595--596 (1952). \href{https://doi.org/10.1143/PTP.7.5.595}{doi:10.1143/PTP.7.5.595}.
+\bibitem{palazzi} P. Palazzi, \emph{The Meson Mass System}, Int. J. Mod. Phys. A \textbf{22}, 546--549 (2007). \href{https://doi.org/10.1142/S0217751X0703580X}{doi:10.1142/S0217751X0703580X}.
+\bibitem{macgregor} M. H. Mac Gregor, \emph{A Muon Mass Tree with alpha-quantized Lepton, Quark and Hadron Masses}, prépublication (2006). \href{https://arxiv.org/abs/hep-ph/0607233}{arXiv:hep-ph/0607233}.
+\bibitem{order} H. A. David et H. N. Nagaraja, \emph{Order Statistics}, 3\textsuperscript{e} éd., Wiley (2003), chap.~2. \href{https://doi.org/10.1002/0471722162}{doi:10.1002/0471722162}.
+\bibitem{lilliefors} H. W. Lilliefors, \emph{On the Kolmogorov-Smirnov Test for Normality with Mean and Variance Unknown}, J. Am. Stat. Assoc. \textbf{62}, 399--402 (1967). \href{https://doi.org/10.1080/01621459.1967.10482916}{doi:10.1080/01621459.1967.10482916}.
+\bibitem{lockhart} R. A. Lockhart, \emph{Conditional limit laws for goodness-of-fit tests}, Bernoulli \textbf{18}, 857--882 (2012). \href{https://doi.org/10.3150/11-BEJ366}{doi:10.3150/11-BEJ366}. \href{https://arxiv.org/abs/1207.5967}{arXiv:1207.5967}.
+\bibitem{vonmises} R. A. Lockhart, F. O'Reilly et M. Stephens, \emph{Exact Conditional Tests and Approximate Bootstrap Tests for the von Mises Distribution}, J. Stat. Theory Pract. \textbf{3}, 543--554 (2009). \href{https://doi.org/10.1080/15598608.2009.10411945}{doi:10.1080/15598608.2009.10411945}.
+\bibitem{hemerik} J. Hemerik et J. Goeman, \emph{Exact testing with random permutations}, TEST \textbf{27}, 811--825 (2018). \href{https://doi.org/10.1007/s11749-017-0571-1}{doi:10.1007/s11749-017-0571-1}.
+\bibitem{irwinhall} J. E. Marengo, D. L. Farnsworth et L. Stefanic, \emph{A Geometric Derivation of the Irwin-Hall Distribution}, Int. J. Math. Math. Sci., 3571419 (2017). \href{https://doi.org/10.1155/2017/3571419}{doi:10.1155/2017/3571419}.
+\bibitem{pdg} S. Navas et al. (Particle Data Group), \emph{Review of Particle Physics}, Phys. Rev. D \textbf{110}, 030001 (2024). \href{https://doi.org/10.1103/PhysRevD.110.030001}{doi:10.1103/PhysRevD.110.030001}. \href{https://pdg.lbl.gov/2024/tables/rpp2024-sum-mesons.pdf}{Table des mésons}, p.~2, 5, 11 et 20, PDF daté du 24 avril 2025.
+\bibitem{pion} Particle Data Group, \href{https://pdg.lbl.gov/2024/listings/rpp2024-list-pi-1300.pdf}{fiche $\pi(1300)$}, édition 2024, section \emph{Mass}.
+\end{thebibliography}
+\end{document}
