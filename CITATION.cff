@@ -1,0 +1,9 @@
+cff-version: 1.1.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: Loth
+  given-names: Frederic
+orcid: https://orcid.org/0009-0004-8283-7732
+title:Lotheon-papers/2026.11.periodic-meson-grid: periodic meson grid release
+version: v1.0.1
+date-released: 2026-11-16
